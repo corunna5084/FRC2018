@@ -32,6 +32,8 @@ public class Robot extends IterativeRobot {
 	
 	int BtnIntake = 5;
 	int BtnShootOut = 15;
+	int BtnA = 3; //This one will move the lift up
+	int BtnB = 4; //This one will move the lift down
 	
 	Victor LeftShooter = new Victor(8);
 	Victor RightShooter = new Victor(9);
@@ -41,6 +43,9 @@ public class Robot extends IterativeRobot {
 	WPI_TalonSRX Talon4 = new WPI_TalonSRX(5);
 	
 	ADIS16448_IMU Gyro = new ADIS16448_IMU();
+	
+	//The lift
+	Victor Lift = new Victor(0);
 	
 	double YAxis;
 	double XAxis;
@@ -57,21 +62,6 @@ public class Robot extends IterativeRobot {
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
-		
-		//The Talon Motor Controllers
-		
-		
-		
-		
-		
-		//The lift
-		Victor Lift = new Victor(0);
-		
-		
-		
-		
-		
-		
 	}
 
 	/**
@@ -145,7 +135,17 @@ public class Robot extends IterativeRobot {
 		} else {
 			LeftShooter.set(0);
 			RightShooter.set(0);
+		} 
+/////////////////////////////////////////////////////////////////////		
+		double LiftN = ((Joy.getRawAxis(6)+1)/2);
+		if(Joy.getRawButton(BtnA) == true) {
+			Lift.set(LiftN);
+		} else if(Joy.getRawButton(BtnB) == true) {
+			Lift.set(-1 * LiftN);
+		} else {
+			Lift.set(0);
 		}
+		
 		
 		
 		
