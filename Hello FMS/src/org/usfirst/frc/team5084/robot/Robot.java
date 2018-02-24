@@ -87,8 +87,13 @@ public class Robot extends IterativeRobot {
 				break;
 			case kDefaultAuto:
 			default:
-				// Put default auto code here
-				break;
+				if(gameData.charAt(0) == 'R') {
+					
+	
+				}
+			break;
+	
+
 		}
 	}
 
