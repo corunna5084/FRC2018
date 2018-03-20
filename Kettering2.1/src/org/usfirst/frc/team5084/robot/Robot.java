@@ -41,8 +41,7 @@ public class Robot extends IterativeRobot {
 	private Joystick X52;
 	
 	AnalogInput LimitT = new AnalogInput(1);
-	AnalogInput LimitB = new AnalogInput(0);
-	
+	AnalogInput LimitB = new AnalogInput(0);	
 	WPI_TalonSRX frontLeft = new WPI_TalonSRX(3);
 	WPI_TalonSRX rearLeft = new WPI_TalonSRX(5);
 	WPI_TalonSRX frontRight = new WPI_TalonSRX(1);
@@ -398,6 +397,8 @@ public class Robot extends IterativeRobot {
 			Grab1.set(0);
 			Grab2.set(0);
 		}
+		
+		
 		
 		SmartDashboard.putNumber("Gyro-X", Gyro.getAngleX());
 	    SmartDashboard.putNumber("Gyro-Y", Gyro.getAngleY());
