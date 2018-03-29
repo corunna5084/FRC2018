@@ -7,34 +7,38 @@ import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
 import javax.swing.JComboBox;
+import javax.swing.JButton;
 
 public class ScoutSystemT1 {
 
 	private JFrame frmScoutSystem;
-	private JTextField textField;
-	private JTextField textField_1;
+	private JTextField TeamName;
+	private JTextField TeamNumber;
 	private JLabel lblClimb;
 	private JLabel lblSwitchAuton;
-	private JComboBox comboBox;
+	private JComboBox DriveType;
 	private JLabel lblDriveType;
 	private JLabel lblSwitch;
-	private JRadioButton rdbtnYes_1;
-	private JRadioButton rdbtnNo_2;
+	private JRadioButton StwitchY;
+	private JRadioButton SwitchN;
 	private JLabel lblScale;
-	private JRadioButton radioButton;
-	private JRadioButton radioButton_1;
+	private JRadioButton ScaleY;
+	private JRadioButton ScaleN;
 	private JLabel lblVault;
-	private JRadioButton radioButton_2;
-	private JRadioButton radioButton_3;
+	private JRadioButton VaultY;
+	private JRadioButton VaultN;
 	private JLabel lblScaleAuton;
-	private JRadioButton radioButton_4;
-	private JRadioButton radioButton_5;
-	private JRadioButton radioButton_6;
+	private JRadioButton AScaleY;
+	private JRadioButton ASwitchN;
+	private JRadioButton ClimbY;
 	private JLabel lblTeleopPeriod;
 	private JLabel lblAuton;
-	private JRadioButton radioButton_7;
-	private JTextField textField_2;
+	private JRadioButton ASwitchY;
+	private JTextField OtherCom;
 	private JLabel lblOtherComents;
+	private JLabel lblCrossedLine;
+	private JRadioButton CrossedLineY;
+	private JRadioButton radioButton_1;
 
 	/**
 	 * Launch the application.
@@ -75,42 +79,42 @@ public class ScoutSystemT1 {
 		lblTeamName.setBounds(10, 11, 176, 27);
 		frmScoutSystem.getContentPane().add(lblTeamName);
 		
-		textField = new JTextField();
-		textField.setBounds(176, 16, 91, 20);
-		frmScoutSystem.getContentPane().add(textField);
-		textField.setColumns(10);
+		TeamName = new JTextField();
+		TeamName.setBounds(176, 16, 91, 20);
+		frmScoutSystem.getContentPane().add(TeamName);
+		TeamName.setColumns(10);
 		
-		textField_1 = new JTextField();
-		textField_1.setColumns(10);
-		textField_1.setBounds(277, 16, 99, 20);
-		frmScoutSystem.getContentPane().add(textField_1);
+		TeamNumber = new JTextField();
+		TeamNumber.setColumns(10);
+		TeamNumber.setBounds(277, 16, 99, 20);
+		frmScoutSystem.getContentPane().add(TeamNumber);
 		
 		lblClimb = new JLabel("Climb:");
 		lblClimb.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblClimb.setBounds(10, 133, 48, 20);
 		frmScoutSystem.getContentPane().add(lblClimb);
 		
-		JRadioButton rdbtnNo = new JRadioButton("No");
-		rdbtnNo.setBounds(103, 134, 52, 20);
-		frmScoutSystem.getContentPane().add(rdbtnNo);
+		JRadioButton ClimbN = new JRadioButton("No");
+		ClimbN.setBounds(103, 134, 52, 20);
+		frmScoutSystem.getContentPane().add(ClimbN);
 		
 		lblSwitchAuton = new JLabel("Switch Auton:");
 		lblSwitchAuton.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblSwitchAuton.setBounds(225, 95, 91, 27);
 		frmScoutSystem.getContentPane().add(lblSwitchAuton);
 		
-		JRadioButton rdbtnNo_1 = new JRadioButton("No");
-		rdbtnNo_1.setBounds(357, 116, 48, 23);
-		frmScoutSystem.getContentPane().add(rdbtnNo_1);
+		JRadioButton CrossedLineN = new JRadioButton("No");
+		CrossedLineN.setBounds(357, 116, 48, 23);
+		frmScoutSystem.getContentPane().add(CrossedLineN);
 		
-		comboBox = new JComboBox();
-		comboBox.setBounds(81, 99, 74, 20);
-		frmScoutSystem.getContentPane().add(comboBox);
-		comboBox.addItem("Mecanum");
-		comboBox.addItem("Tank");
-		comboBox.addItem("Arcade");
-		comboBox.addItem("Swerve");
-		comboBox.addItem("H-Drive");
+		DriveType = new JComboBox();
+		DriveType.setBounds(81, 99, 74, 20);
+		frmScoutSystem.getContentPane().add(DriveType);
+		DriveType.addItem("Mecanum");
+		DriveType.addItem("Tank");
+		DriveType.addItem("Arcade");
+		DriveType.addItem("Swerve");
+		DriveType.addItem("H-Drive");
 		
 		lblDriveType = new JLabel("Drive Type:\r\n");
 		lblDriveType.setFont(new Font("Times New Roman", Font.PLAIN, 14));
@@ -122,56 +126,56 @@ public class ScoutSystemT1 {
 		lblSwitch.setBounds(10, 146, 48, 27);
 		frmScoutSystem.getContentPane().add(lblSwitch);
 		
-		rdbtnYes_1 = new JRadioButton("Yes");
-		rdbtnYes_1.setBounds(53, 150, 48, 20);
-		frmScoutSystem.getContentPane().add(rdbtnYes_1);
+		StwitchY = new JRadioButton("Yes");
+		StwitchY.setBounds(53, 150, 48, 20);
+		frmScoutSystem.getContentPane().add(StwitchY);
 		
-		rdbtnNo_2 = new JRadioButton("No");
-		rdbtnNo_2.setBounds(103, 150, 52, 20);
-		frmScoutSystem.getContentPane().add(rdbtnNo_2);
+		SwitchN = new JRadioButton("No");
+		SwitchN.setBounds(103, 150, 52, 20);
+		frmScoutSystem.getContentPane().add(SwitchN);
 		
 		lblScale = new JLabel("Scale:\r\n");
 		lblScale.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblScale.setBounds(10, 167, 48, 14);
 		frmScoutSystem.getContentPane().add(lblScale);
 		
-		radioButton = new JRadioButton("Yes");
-		radioButton.setBounds(53, 164, 48, 23);
-		frmScoutSystem.getContentPane().add(radioButton);
+		ScaleY = new JRadioButton("Yes");
+		ScaleY.setBounds(53, 164, 48, 23);
+		frmScoutSystem.getContentPane().add(ScaleY);
 		
-		radioButton_1 = new JRadioButton("No");
-		radioButton_1.setBounds(103, 164, 52, 23);
-		frmScoutSystem.getContentPane().add(radioButton_1);
+		ScaleN = new JRadioButton("No");
+		ScaleN.setBounds(103, 164, 52, 23);
+		frmScoutSystem.getContentPane().add(ScaleN);
 		
 		lblVault = new JLabel("Vault:");
 		lblVault.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblVault.setBounds(10, 177, 38, 27);
 		frmScoutSystem.getContentPane().add(lblVault);
 		
-		radioButton_2 = new JRadioButton("Yes");
-		radioButton_2.setBounds(53, 180, 48, 23);
-		frmScoutSystem.getContentPane().add(radioButton_2);
+		VaultY = new JRadioButton("Yes");
+		VaultY.setBounds(53, 180, 48, 23);
+		frmScoutSystem.getContentPane().add(VaultY);
 		
-		radioButton_3 = new JRadioButton("No");
-		radioButton_3.setBounds(103, 180, 52, 23);
-		frmScoutSystem.getContentPane().add(radioButton_3);
+		VaultN = new JRadioButton("No");
+		VaultN.setBounds(103, 180, 52, 23);
+		frmScoutSystem.getContentPane().add(VaultN);
 		
 		lblScaleAuton = new JLabel("Scale Auton:");
 		lblScaleAuton.setFont(new Font("Times New Roman", Font.PLAIN, 14));
 		lblScaleAuton.setBounds(225, 113, 82, 26);
 		frmScoutSystem.getContentPane().add(lblScaleAuton);
 		
-		radioButton_4 = new JRadioButton("Yes");
-		radioButton_4.setBounds(310, 116, 53, 23);
-		frmScoutSystem.getContentPane().add(radioButton_4);
+		AScaleY = new JRadioButton("Yes");
+		AScaleY.setBounds(310, 116, 53, 23);
+		frmScoutSystem.getContentPane().add(AScaleY);
 		
-		radioButton_5 = new JRadioButton("No");
-		radioButton_5.setBounds(357, 98, 48, 23);
-		frmScoutSystem.getContentPane().add(radioButton_5);
+		ASwitchN = new JRadioButton("No");
+		ASwitchN.setBounds(357, 98, 48, 23);
+		frmScoutSystem.getContentPane().add(ASwitchN);
 		
-		radioButton_6 = new JRadioButton("Yes");
-		radioButton_6.setBounds(53, 135, 48, 19);
-		frmScoutSystem.getContentPane().add(radioButton_6);
+		ClimbY = new JRadioButton("Yes");
+		ClimbY.setBounds(53, 135, 48, 19);
+		frmScoutSystem.getContentPane().add(ClimbY);
 		
 		lblTeleopPeriod = new JLabel("TeleOp Period:");
 		lblTeleopPeriod.setFont(new Font("Times New Roman", Font.BOLD, 18));
@@ -183,17 +187,34 @@ public class ScoutSystemT1 {
 		lblAuton.setBounds(238, 74, 68, 14);
 		frmScoutSystem.getContentPane().add(lblAuton);
 		
-		radioButton_7 = new JRadioButton("Yes");
-		radioButton_7.setBounds(310, 98, 53, 23);
-		frmScoutSystem.getContentPane().add(radioButton_7);
+		ASwitchY = new JRadioButton("Yes");
+		ASwitchY.setBounds(310, 98, 53, 23);
+		frmScoutSystem.getContentPane().add(ASwitchY);
 		
-		textField_2 = new JTextField();
-		textField_2.setBounds(97, 43, 293, 20);
-		frmScoutSystem.getContentPane().add(textField_2);
-		textField_2.setColumns(10);
+		OtherCom = new JTextField();
+		OtherCom.setBounds(97, 43, 293, 20);
+		frmScoutSystem.getContentPane().add(OtherCom);
+		OtherCom.setColumns(10);
 		
 		lblOtherComents = new JLabel("Other Coments:");
 		lblOtherComents.setBounds(2, 43, 99, 20);
 		frmScoutSystem.getContentPane().add(lblOtherComents);
+		
+		JButton btnImputData = new JButton("Input Data");
+		btnImputData.setBounds(205, 167, 185, 40);
+		frmScoutSystem.getContentPane().add(btnImputData);
+		
+		lblCrossedLine = new JLabel("Crossed Line");
+		lblCrossedLine.setFont(new Font("Times New Roman", Font.PLAIN, 14));
+		lblCrossedLine.setBounds(225, 133, 82, 26);
+		frmScoutSystem.getContentPane().add(lblCrossedLine);
+		
+		CrossedLineY = new JRadioButton("Yes");
+		CrossedLineY.setBounds(310, 133, 53, 23);
+		frmScoutSystem.getContentPane().add(CrossedLineY);
+		
+		radioButton_1 = new JRadioButton("No");
+		radioButton_1.setBounds(357, 133, 48, 23);
+		frmScoutSystem.getContentPane().add(radioButton_1);
 	}
 }
