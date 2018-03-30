@@ -8,6 +8,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JRadioButton;
 import javax.swing.JComboBox;
 import javax.swing.JButton;
+import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.awt.event.ActionEvent;
 
 public class ScoutSystemT1 {
 
@@ -19,7 +26,7 @@ public class ScoutSystemT1 {
 	private JComboBox DriveType;
 	private JLabel lblDriveType;
 	private JLabel lblSwitch;
-	private JRadioButton StwitchY;
+	private JRadioButton SwitchY;
 	private JRadioButton SwitchN;
 	private JLabel lblScale;
 	private JRadioButton ScaleY;
@@ -38,7 +45,16 @@ public class ScoutSystemT1 {
 	private JLabel lblOtherComents;
 	private JLabel lblCrossedLine;
 	private JRadioButton CrossedLineY;
-	private JRadioButton radioButton_1;
+	private JRadioButton CrossedLineN;
+	boolean Climb;
+	boolean Switch;
+	boolean Scale;
+	boolean Vault;
+	boolean ASwitch;
+	boolean AScale;
+	boolean CrossedLine;
+	
+	
 
 	/**
 	 * Launch the application.
@@ -103,9 +119,9 @@ public class ScoutSystemT1 {
 		lblSwitchAuton.setBounds(225, 95, 91, 27);
 		frmScoutSystem.getContentPane().add(lblSwitchAuton);
 		
-		JRadioButton CrossedLineN = new JRadioButton("No");
-		CrossedLineN.setBounds(357, 116, 48, 23);
-		frmScoutSystem.getContentPane().add(CrossedLineN);
+		JRadioButton AScaleN = new JRadioButton("No");
+		AScaleN.setBounds(357, 116, 48, 23);
+		frmScoutSystem.getContentPane().add(AScaleN);
 		
 		DriveType = new JComboBox();
 		DriveType.setBounds(81, 99, 74, 20);
@@ -126,9 +142,20 @@ public class ScoutSystemT1 {
 		lblSwitch.setBounds(10, 146, 48, 27);
 		frmScoutSystem.getContentPane().add(lblSwitch);
 		
-		StwitchY = new JRadioButton("Yes");
-		StwitchY.setBounds(53, 150, 48, 20);
-		frmScoutSystem.getContentPane().add(StwitchY);
+		SwitchY = new JRadioButton("Yes");
+		SwitchY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+	            if (SwitchY.isSelected()) {
+	                Switch = true;
+	            }
+	            
+	            else {
+	            	Switch = false;
+	            }
+			}
+		});
+		SwitchY.setBounds(53, 150, 48, 20);
+		frmScoutSystem.getContentPane().add(SwitchY);
 		
 		SwitchN = new JRadioButton("No");
 		SwitchN.setBounds(103, 150, 52, 20);
@@ -140,6 +167,18 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblScale);
 		
 		ScaleY = new JRadioButton("Yes");
+		ScaleY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+	            if (ScaleY.isSelected()) {
+	                Scale = true;
+	            }
+	            
+	            else {
+	            	Scale = false;
+	            }
+			}
+			
+		});
 		ScaleY.setBounds(53, 164, 48, 23);
 		frmScoutSystem.getContentPane().add(ScaleY);
 		
@@ -153,6 +192,18 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblVault);
 		
 		VaultY = new JRadioButton("Yes");
+		VaultY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+	            if (VaultY.isSelected()) {
+	                Vault = true;
+	            }
+	            
+	            else {
+	            	Vault = false;
+	            }
+			}
+			
+		});
 		VaultY.setBounds(53, 180, 48, 23);
 		frmScoutSystem.getContentPane().add(VaultY);
 		
@@ -166,6 +217,19 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblScaleAuton);
 		
 		AScaleY = new JRadioButton("Yes");
+		AScaleY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+	            if (AScaleY.isSelected()) {
+	                AScale = true;
+	            }
+	            
+	            else {
+	            	AScale = false;
+	            }
+			
+			}
+		});
 		AScaleY.setBounds(310, 116, 53, 23);
 		frmScoutSystem.getContentPane().add(AScaleY);
 		
@@ -174,6 +238,18 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(ASwitchN);
 		
 		ClimbY = new JRadioButton("Yes");
+		ClimbY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+	            if (ClimbY.isSelected()) {
+	                Climb = true;
+	            }
+	            
+	            else {
+	            	Climb = false;
+	            }
+			}
+		});
 		ClimbY.setBounds(53, 135, 48, 19);
 		frmScoutSystem.getContentPane().add(ClimbY);
 		
@@ -188,6 +264,19 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblAuton);
 		
 		ASwitchY = new JRadioButton("Yes");
+		ASwitchY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+	            if (ASwitchY.isSelected()) {
+	                ASwitch = true;
+	            }
+	            
+	            else {
+	            	ASwitch = false;
+	            }
+			
+			}
+		});
 		ASwitchY.setBounds(310, 98, 53, 23);
 		frmScoutSystem.getContentPane().add(ASwitchY);
 		
@@ -201,6 +290,32 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblOtherComents);
 		
 		JButton btnImputData = new JButton("Input Data");
+		btnImputData.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				String DriveT = (String) (DriveType).getSelectedItem();
+				String teamName = TeamName.getText();
+				String teamNumber = TeamNumber.getText();
+				String OCom = OtherCom.getText();
+				
+				
+				Path path = Paths.get("c:/output.txt");
+				 
+				
+				try (BufferedWriter writer = Files.newBufferedWriter(path))
+				{
+				    writer.write(teamName + "," + teamNumber + "," + DriveT + "," + OCom);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
+				//Testing only
+				System.out.println(teamName);
+				System.out.println(teamNumber);
+				System.out.println(DriveT);
+				System.out.println(OCom);
+			}
+		});
 		btnImputData.setBounds(205, 167, 185, 40);
 		frmScoutSystem.getContentPane().add(btnImputData);
 		
@@ -210,11 +325,24 @@ public class ScoutSystemT1 {
 		frmScoutSystem.getContentPane().add(lblCrossedLine);
 		
 		CrossedLineY = new JRadioButton("Yes");
+		CrossedLineY.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+	            if (CrossedLineY.isSelected()) {
+	                CrossedLine = true;
+	            }
+	            
+	            else {
+	            	CrossedLine = false;
+	            }
+			
+			}
+		});
 		CrossedLineY.setBounds(310, 133, 53, 23);
 		frmScoutSystem.getContentPane().add(CrossedLineY);
 		
-		radioButton_1 = new JRadioButton("No");
-		radioButton_1.setBounds(357, 133, 48, 23);
-		frmScoutSystem.getContentPane().add(radioButton_1);
+		CrossedLineN = new JRadioButton("No");
+		CrossedLineN.setBounds(357, 133, 48, 23);
+		frmScoutSystem.getContentPane().add(CrossedLineN);
 	}
 }
