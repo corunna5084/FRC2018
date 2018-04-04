@@ -13,11 +13,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
-//import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Solenoid;
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
@@ -35,34 +33,30 @@ import com.analog.adis16448.ADIS16448_IMU;
 public class Robot extends IterativeRobot {
 	private static final String Forward = "Forward Auto";
 	private static final String rSwitch = "Right Switch Auto";
-	private static final String Test = "Testing";
+	private static final String Test = "Testing Auto";
 	private static final String Switch = "Main Switch Auto";
+	private static final String SwtchScle = "Switch to Scale Auto";
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 	
 	ADIS16448_IMU Gyro = new ADIS16448_IMU();
-
 	MecanumDrive mech;
-	
 	Compressor Comp = new Compressor(0);
 	
 	AnalogInput LimitT = new AnalogInput(1);
 	AnalogInput LimitB = new AnalogInput(0);
-	
+	AnalogInput BoxDetect = new AnalogInput(2);
+	AnalogInput Hall = new AnalogInput(3);
+	Timer time = new Timer();
+
 	WPI_TalonSRX frontLeft = new WPI_TalonSRX(3);
 	WPI_TalonSRX rearLeft = new WPI_TalonSRX(5);
 	WPI_TalonSRX frontRight = new WPI_TalonSRX(1);
-	WPI_TalonSRX rearRight = new WPI_TalonSRX(4);
-	
-	Timer time = new Timer();
-		
-	Spark Lift = new Spark(1);
+	WPI_TalonSRX rearRight = new WPI_TalonSRX(4);	
+	Victor Lift = new Victor(1);
 	Victor Grab1 = new Victor(9);
-	Victor Grab2 = new Victor(8);
-	
+	Victor Grab2 = new Victor(8);	
 	Solenoid Claw = new Solenoid(0);
-	AnalogInput Hall = new AnalogInput(3);
-//	DigitalInput Hall = new DigitalInput(0);
 	
 	Joystick Log;
 	int A2 = 1;
@@ -81,41 +75,53 @@ public class Robot extends IterativeRobot {
 	int C = 5;
 	int D = 7;
 	int B = 4;
-	int Fire = 2;
+	int Fire = 2;	
+	int ModeG = 24;
+	int ModeO = 25;
+	int ModeR = 26;
 	
+	//Overrides control
 	int lift = 0;
 	int grab = 0;
-	int claw = 0;
 	
-	double FinnalPos;
+	//Misc. values
 	int TimeOut = 10;
-	
 	double Percent = 0.5;
-	int loops = 0;
-	double lP = 0.00473*128; //2.827;
-	double lI = 0.00;//0.008;
-	double lD = lP*10;//28.27;
-	double lF = 0.372 * Percent;//0.372
-	int lV = 2064;
-	
-	double rP = 0.00452*128;//3.020;
-	double rI = 0.00;//0.0125;
-	double rD = rP*10;//30.20;
-	double rF = 0.385 * Percent;//0.385
-	int rV = 1995;	
-	
 	int flag;
-	int First = 7175;
-	int Second = 11305*2; 
-	int Third = 15219/2;
 	String FMS;
-	int Flag = 0;
 	int Total = 0;
 	int g = 0;
 	int h = 0;
 	int c = 0;
-	double Top = LimitT.getVoltage();
-	double Bottom = LimitB.getAverageVoltage();
+	double Top;
+	double Bottom;
+
+	//Competition 
+	double lP = 0.5077; //(102.3/25791)*128 
+	double lI = 0.0;
+	double lD = 5.077; //lP*10
+	double lF = 0.167 * Percent;
+	int lV = 4604;
+	
+	double rP = 0.51086; //(102.3/25632)*128
+	double rI = 0.0;
+	double rD = 5.1086; //rP*10
+	double rF = 0.168 * Percent;
+	int rV = 4561;
+
+	//Practice
+//	double lP = 0.00473*128; //2.827;
+//	double lI = 0.00;//0.008;
+//	double lD = lP*10;//28.27;
+//	double lF = 0.372 * Percent;//0.372
+//	int lV = 2064;
+//	
+//	double rP = 0.00452*128;//3.020;
+//	double rI = 0.00;//0.0125;
+//	double rD = rP*10;//30.20;
+//	double rF = 0.385 * Percent;//0.385
+//	int rV = 1995;	
+	
 
 	
 	/*
@@ -130,33 +136,20 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		
+		CameraServer.getInstance().startAutomaticCapture();
 		mech = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
-		
 		Log = new Joystick(1);
-		X52 = new Joystick(0);
-		
+		X52 = new Joystick(0);		
 		Comp.setClosedLoopControl(true);
-		
-		rearLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TimeOut);
-		
-		rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
-		
-		rearRight.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TimeOut);
-		
-		rearRight.setSelectedSensorPosition(0, 0, TimeOut);
-//		Gyro.reset();
-//		Gyro.calibrate();
 		time.start();
 
-		
 		m_chooser.addDefault("Basic Auto", Forward);
-		m_chooser.addObject("Test", Test);
+		m_chooser.addObject("Test Auto", Test);
 		m_chooser.addObject("Right Switch Auto", rSwitch);
 		m_chooser.addObject("Main Switch Auto", Switch);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		m_chooser.addObject("Switch to Scale Auto", SwtchScle);
+		SmartDashboard.putData("Auton choices", m_chooser);
 		
-		CameraServer.getInstance().startAutomaticCapture().setResolution(320, 240);
 		rearLeft.setSafetyEnabled(false); 
 		frontLeft.setSafetyEnabled(false);
 		rearRight.setSafetyEnabled(false);
@@ -166,25 +159,14 @@ public class Robot extends IterativeRobot {
 		Lift.setSafetyEnabled(false);
 		mech.setSafetyEnabled(false);
 		
+		//Setup for the Rear Left Encoder/Motor
+		rearLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TimeOut);		
+		rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
 		rearLeft.configNominalOutputForward(0, TimeOut);
 		rearLeft.configNominalOutputReverse(0, TimeOut);
 		rearLeft.configPeakOutputForward(1, TimeOut);
 		rearLeft.configPeakOutputReverse(-1, TimeOut);
 		rearLeft.configAllowableClosedloopError(0, 0, TimeOut);
-		
-		rearRight.configNominalOutputForward(0, TimeOut);
-		rearRight.configNominalOutputReverse(0, TimeOut);
-		rearRight.configPeakOutputForward(1, TimeOut);
-		rearRight.configPeakOutputReverse(-1, TimeOut);
-		rearRight.configAllowableClosedloopError(0, 0, TimeOut);
-		
-//		rearLeft.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TimeOut);		
-//		rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
-		frontLeft.setInverted(false);
-		frontRight.setInverted(false);
-		
-//		rearLeft.setPID();
-		
 		rearLeft.setSensorPhase(true);
 		rearLeft.setInverted(false);
 		rearLeft.selectProfileSlot(0, 0);
@@ -195,6 +177,14 @@ public class Robot extends IterativeRobot {
 		rearLeft.configMotionCruiseVelocity(lV, TimeOut);
 		rearLeft.configMotionAcceleration(lV, TimeOut);
 		
+		//Setup for the Rear Right Encoder/Motor
+		rearRight.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, TimeOut);		
+		rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+		rearRight.configNominalOutputForward(0, TimeOut);
+		rearRight.configNominalOutputReverse(0, TimeOut);
+		rearRight.configPeakOutputForward(1, TimeOut);
+		rearRight.configPeakOutputReverse(-1, TimeOut);
+		rearRight.configAllowableClosedloopError(0, 0, TimeOut);
 		rearRight.setSensorPhase(true);
 		rearRight.setInverted(false);
 		rearRight.selectProfileSlot(0, 0);
@@ -205,41 +195,40 @@ public class Robot extends IterativeRobot {
 		rearRight.configMotionCruiseVelocity(rV, TimeOut);
 		rearRight.configMotionAcceleration(rV, TimeOut);
 
+		frontLeft.setInverted(false);
+		frontRight.setInverted(false);
+				
 	}
 
 	
 	
 	public void debug() {
-//		SmartDashboard.putNumber("X-Angle			 ", Gyro.getAngleX());
-//	    SmartDashboard.putNumber("Y-Angle			 ", Gyro.getAngleY());
-//	    SmartDashboard.putNumber("Z-Angle			 ", Gyro.getAngleZ());
-//	    SmartDashboard.putNumber("X-Acceleration	 ", Gyro.getAccelX());
-//	    SmartDashboard.putNumber("Y-Acceleration	 ", Gyro.getAccelY());
-//	    SmartDashboard.putNumber("Z-Acceleration	 ", Gyro.getAccelZ());
-//	    SmartDashboard.putNumber("X-Mag				 ", Gyro.getMagX());
-//	    SmartDashboard.putNumber("Y-Mag				 ", Gyro.getMagY());
-//	    SmartDashboard.putNumber("Z-Mag				 ", Gyro.getMagZ());
-//	    SmartDashboard.putNumber("Yaw				 ", Gyro.getYaw());
-//	    SmartDashboard.putNumber("Roll				 ", Gyro.getRoll());
-//	    SmartDashboard.putNumber("Pitch				 ", Gyro.getPitch());
-//	    SmartDashboard.putNumber("Pressure			 ", Gyro.getBarometricPressure());
-//	    SmartDashboard.putNumber("Temperature		 ", Gyro.getTemperature());
-//	    SmartDashboard.putNumber("X-Rate			 ", Gyro.getRateX());
-//	    SmartDashboard.putNumber("Y-Rate			 ", Gyro.getRateY());
-//	    SmartDashboard.putNumber("Z-Rate			 ", Gyro.getRateZ());
-//	    
-	    SmartDashboard.putNumber("Left Mag Position	 ", rearLeft.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Right Mag Position ", rearRight.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Left Front Percent ", frontLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Left Rear Percent	 ", rearLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Front Percent", frontRight.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Rear Percent ", rearRight.getMotorOutputPercent());
+		//Misc
+		SmartDashboard.putNumber("TIME					:", time.get());
+		SmartDashboard.putNumber("Lift Revolutions	 	:", Total);
+		SmartDashboard.putNumber("flag				 	:", flag);
+		SmartDashboard.putNumber("Box Detection Voltage	:", BoxDetect.getAverageVoltage());
+		//Magnetic Encoders 
+	    SmartDashboard.putNumber("Left Mag Position	 	:", rearLeft.getSelectedSensorPosition(0));
+	    SmartDashboard.putNumber("Left Front Percent 	:", frontLeft.getMotorOutputPercent());
+	    SmartDashboard.putNumber("Left Rear Percent	 	:", rearLeft.getMotorOutputPercent());	
+		SmartDashboard.putNumber("Left Error			:", rearLeft.getClosedLoopError(0));
+	    SmartDashboard.putNumber("Right Mag Position 	:", rearRight.getSelectedSensorPosition(0));
+	    SmartDashboard.putNumber("Right Front Percent	:", frontRight.getMotorOutputPercent());
+	    SmartDashboard.putNumber("Right Rear Percent 	:", rearRight.getMotorOutputPercent());
+		SmartDashboard.putNumber("Right Error			:", rearRight.getClosedLoopError(0));
+		//Gyro
+		SmartDashboard.putNumber("X-Angle			 	:", Gyro.getAngleX());
+	    SmartDashboard.putNumber("Y-Angle			 	:", Gyro.getAngleY());
+	    SmartDashboard.putNumber("Z-Angle			 	:", Gyro.getAngleZ());
+	    SmartDashboard.putNumber("X-Acceleration	 	:", Gyro.getAccelX());
+	    SmartDashboard.putNumber("Y-Acceleration	 	:", Gyro.getAccelY());
+	    SmartDashboard.putNumber("Z-Acceleration	 	:", Gyro.getAccelZ());
+	    SmartDashboard.putNumber("Yaw					:", Gyro.getYaw());
+	    //Pneumatics
+	    SmartDashboard.putBoolean("Comperssor State:", Comp.getClosedLoopControl());
+	    SmartDashboard.putBoolean("Claw State Open:", Claw.get());
 	    
-	    SmartDashboard.putString("Light Position	 ", FMS);
-		SmartDashboard.putNumber("flag				 ", flag);
-		SmartDashboard.putNumber("HallEffect		 ", Total);
-
-
 
 	}
 	
@@ -257,20 +246,21 @@ public class Robot extends IterativeRobot {
 	 * SendableChooser make sure to add them to the chooser code above as well.
 	 */
 	public void AutoLine(){
-		int Auto = 40960; // pulses for 140 inches
-		
-		
+		int Auto = (int) ((130/18.84)*4096); // pulses for 130 inches
+
 		rearLeft.set(ControlMode.MotionMagic, Auto);
 		rearRight.set(ControlMode.MotionMagic, -1*Auto);
 		frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
 		frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
-		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 1)) {
+		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 4)) {
 			flag = 42;
 		}
 		
 	}
 	
 	public void FirstMovement() {
+		int First = 7175;
+		
 		rearLeft.set(ControlMode.MotionMagic, First);
 		rearRight.set(ControlMode.MotionMagic, -1*First);
 		frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
@@ -278,36 +268,38 @@ public class Robot extends IterativeRobot {
 		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 1)) {
 			flag = 1;
 			time.reset();
-			if(m_autoSelected != "Test") {
-					rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
-					rearRight.setSelectedSensorPosition(0, 0, TimeOut);
-			}
+			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+			
 		}
 	}
 	
 	public void SecondMovement() {
-	
-	if(FMS.charAt(0) == 'L') {
-		rearLeft.set(ControlMode.MotionMagic, Second);
-		rearRight.set(ControlMode.MotionMagic, Second);//Right motor is Physically inverted so this is a Negative
-		frontLeft.set(ControlMode.PercentOutput, -1 * rearLeft.getMotorOutputPercent());
-		frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
+		int Second = (11305*5)/2; 
+
+		if(FMS.charAt(0) == 'L') {
+			rearLeft.set(ControlMode.MotionMagic, Second);
+			rearRight.set(ControlMode.MotionMagic, Second);//Right motor is Physically inverted so this is a Negative
+			frontLeft.set(ControlMode.PercentOutput, -1 * rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
 		}else{
-		rearLeft.set(ControlMode.MotionMagic, -1* Second);
-		rearRight.set(ControlMode.MotionMagic, -1* Second);
-		frontLeft.set(ControlMode.PercentOutput,  -1*rearLeft.getMotorOutputPercent());
-		frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
-	}
+			rearLeft.set(ControlMode.MotionMagic, -1* Second);
+			rearRight.set(ControlMode.MotionMagic, -1* Second);
+			frontLeft.set(ControlMode.PercentOutput,  -1*rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
+		}
 	
-	if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 1)) {
-		flag = 2;
-		time.reset();
-		rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
-		rearRight.setSelectedSensorPosition(0, 0, TimeOut);
-	}
+		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 2)) {
+			flag = 2;
+			time.reset();
+			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+		}
 }
 	
 	public void ThirdMovement() {
+		int Third = (15219)/2;
+		
 		rearLeft.set(ControlMode.MotionMagic, Third);
 		rearRight.set(ControlMode.MotionMagic, -1*Third);
 		frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
@@ -317,28 +309,134 @@ public class Robot extends IterativeRobot {
 			flag = 3;
 			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
 			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+			time.reset();
 
 		}
 	}
+	
+	public void Switch() {
+		Grab1.set(-0.7);
+		Grab2.set(0.7);
+		mech.driveCartesian(0.0, 0.0, 0.0, 0.0);
+		 if((BoxDetect.getAverageVoltage() < 4.5) && (time.get() > 3)){
+			flag = 4;
+			time.reset();
+		}
+	}
+	
+	public void Turn() {
+		int turn = 10000;
+		
+		if(FMS.charAt(0) == 'L') {
+			rearLeft.set(ControlMode.MotionMagic, turn);
+			rearRight.set(ControlMode.MotionMagic, turn);
+			frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
+		}else {
+			rearLeft.set(ControlMode.MotionMagic, -turn);
+			rearRight.set(ControlMode.MotionMagic, -turn);
+			frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
+
+		}
+		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 1)) {
+			flag = 6;
+			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+			time.reset();
+
+		}
+	}
+	
+	public void SecondCube() {
+		if(BoxDetect.getAverageVoltage() < 4.5) {
+			Claw.set(true);
+			Grab1.set(1);
+			Grab2.set(-1);
+			mech.driveCartesian(0.0, 0.3, 0.0);
+
+		}else {
+			Claw.set(false);
+			Grab1.set(0.2);
+			Grab2.set(-0.2);
+			mech.driveCartesian(0.0, 0.0, 0.0);
+			flag = 7;
+		}
+	}
+	
+	public void backup() {
+		int back = 15654;//6'
+		
+		rearLeft.set(ControlMode.MotionMagic, -1 * back);
+		rearRight.set(ControlMode.MotionMagic, back);
+		frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
+		frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
+		if((rearLeft.getSelectedSensorVelocity(0) == 0)&& (time.get() > 1)) {
+			flag = 8;
+			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+			time.reset();
+
+		}
+	}
+	public void Straff() {
+		int SwtchScle = 33916;
+		if(FMS.charAt(1) == 'L') {
+			rearLeft.set(ControlMode.MotionMagic, SwtchScle);
+			rearRight.set(ControlMode.MotionMagic, SwtchScle);//Right motor is Physically inverted so this is a Negative
+			frontLeft.set(ControlMode.PercentOutput, -1 * rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
+		}else {
+			rearLeft.set(ControlMode.MotionMagic, -1*SwtchScle);
+			rearRight.set(ControlMode.MotionMagic, -1*SwtchScle);//Right motor is Physically inverted so this is a Negative
+			frontLeft.set(ControlMode.PercentOutput, -1 * rearLeft.getMotorOutputPercent());
+			frontRight.set(ControlMode.PercentOutput, -1*rearRight.getMotorOutputPercent());
+
+		}
+		if((rearLeft.getSelectedSensorVelocity(0) == 0) && (time.get() > 1)) {
+			flag = 9;
+			rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+			rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+			time.reset();
+
+		}
+		
+
+	}
+	
+	public void Scale() {
+		int ff = 0;
+		if(LimitT.getAverageVoltage() < 4.5) {
+			Lift.set(1.0);
+		}else {
+			Lift.set(0);
+			ff = 10;
+		}
+		
+		if(ff == 10) {
+			Grab1.set(-1);  //Values need to be reversed for Comp. Robot
+			Grab2.set(1);
+		}else {
+			Grab1.set(0.2);
+			Grab2.set(-0.2);
+		}
+	}
+
+
+	
 	@Override
 	public void autonomousInit() {
-		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
-		
+		m_autoSelected = m_chooser.getSelected();		
 		FMS = DriverStation.getInstance().getGameSpecificMessage();
-		
 		System.out.println("Auto selected: " + m_autoSelected);
-		
 		rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
 		rearRight.setSelectedSensorPosition(0, 0, TimeOut);
-		
 		rearLeft.setIntegralAccumulator(0, 0, TimeOut);
 		rearRight.setIntegralAccumulator(0, 0, TimeOut);
-		
-		flag= 0;
+		time.reset();
+		flag = 0;
 		Total = 0;
-
+		Gyro.reset();
 	}
 
 	/**
@@ -346,40 +444,19 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		SmartDashboard.putNumber("Left Error			:", rearLeft.getClosedLoopError(0));
-		SmartDashboard.putNumber("Right Error			:", rearRight.getClosedLoopError(0));
-  
-		SmartDashboard.putNumber("TIME					:", time.get());
-	    SmartDashboard.putString("Light Position	 	:", FMS);
-		SmartDashboard.putNumber("flag				 	:", flag);
-		SmartDashboard.putNumber("HallEffect		 	:", Total);
-		
-	    SmartDashboard.putNumber("Left Mag Position	 	:", rearLeft.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Right Mag Position 	:", rearRight.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Left Front Percent 	:", frontLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Left Rear Percent	 	:", rearLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Front Percent	:", frontRight.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Rear Percent 	:", rearRight.getMotorOutputPercent());
-	    
-	    SmartDashboard.putString("Light Position	 	:", FMS);
-		SmartDashboard.putNumber("flag				 	:", flag);
-		SmartDashboard.putNumber("Revolutions for Lift	:", Total);
-		SmartDashboard.putNumber("LIFT					:", lift);
-		SmartDashboard.putNumber("Hall Effect Sensor	:", Hall.getAverageVoltage());
-		SmartDashboard.putNumber("Bottom Limit Switch", LimitB.getAverageVoltage());
-		SmartDashboard.putNumber("X-Angle			 ", Gyro.getAngleX());
-	    SmartDashboard.putNumber("Y-Angle			 ", Gyro.getAngleY());
-	    SmartDashboard.putNumber("Z-Angle			 ", Gyro.getAngleZ());
-	    SmartDashboard.putNumber("X-Acceleration	 ", Gyro.getAccelX());
-	    SmartDashboard.putNumber("Y-Acceleration	 ", Gyro.getAccelY());
-	    SmartDashboard.putNumber("Z-Acceleration	 ", Gyro.getAccelZ());
-
-		
+		SmartDashboard.putString("FMS Lights", FMS);
+		debug();	
+		boolean q;
+		if(FMS.charAt(0) == FMS.charAt(1)) {
+			q = true;
+		}else {
+			q = false;
+		}
 		if(Hall.getAverageVoltage() < 0.1) {
 			if(Lift.getSpeed() > 0 && h == 0) {
 				Total = Total + 1;
 				h = 1;
-			}else if(Lift.getSpeed() < 0 && h == 0) {
+			}else if(Lift.getSpeed() <= 0 && h == 0) {
 				Total = Total - 1;
 				h = 1;
 			}else {
@@ -388,111 +465,92 @@ public class Robot extends IterativeRobot {
 		}else {
 			h = 0;
 		}
-
-
-		
+	
 		switch (m_autoSelected) {
-		
-			case rSwitch:
-				
-				if(time.get() < 3) {// Move Robot forward for 3 Seconds
-					
+			case rSwitch:				
+				if(time.get() < 3) {// Move Robot forward for 3 Seconds				
 					mech.driveCartesian(0.0, 0.3, 0.0);
-					
 				}else {
 					if(FMS.charAt(0)=='R') {
 						if(Total < 10) {// Move Lift Up 10 revolutions
-
 							Lift.set(0.4);					
-						}else {
-							
+						}else {							
 							Lift.set(0.0);
 						}
-						if(time.get() < 4 && time.get() > 3 ) {//Turn Counter Clockwise for 1 Second
-							
-							mech.driveCartesian(0, 0, -0.4);
-							
-						}else if(time.get() < 5.0 && time.get() > 4.0) { //Move Forward for 1 Second
-							
-							mech.driveCartesian(0.0, 0.3, 0.0); 
-							
-						}else if(time.get() > 5.5) { //Stop and drop Block
-							
+						if(time.get() < 4 && time.get() > 3 ) {//Turn Counter Clockwise for 1 Second							
+							mech.driveCartesian(0, 0, -0.4);							
+						}else if(time.get() < 5.0 && time.get() > 4.0) { //Move Forward for 1 Second							
+							mech.driveCartesian(0.0, 0.3, 0.0); 						
+						}else if(time.get() > 5.5) { //Stop and drop Block							
 							mech.driveCartesian(0.0, 0.0, 0.0);
 							Grab1.set(0.4);
-							Grab2.set(0.4);
-							
-						}else {//DO NOTHIN'
-								
-							mech.driveCartesian(0.0, 0.0, 0.0);
-								
+							Grab2.set(0.4);							
+						}else {//DO NOTHIN'								
+							mech.driveCartesian(0.0, 0.0, 0.0);								
 						}
 					}
 				}
-				
-			break;
-			case Forward:
-			default:
-				
-				if(time.get() < 3) {  
-				
-				rearLeft.set(ControlMode.PercentOutput, 0.3);
-				rearRight.set(ControlMode.PercentOutput, -0.3); 
-				frontLeft.set(ControlMode.PercentOutput, 0.3);
-				frontRight.set(ControlMode.PercentOutput, -0.3);
-				}else {
-				rearLeft.set(ControlMode.PercentOutput, 0.0);
-				rearRight.set(ControlMode.PercentOutput, 0.0);
-				frontLeft.set(ControlMode.PercentOutput, 0.0);
-				frontRight.set(ControlMode.PercentOutput, 0.0);
-				}
-				flag = 42;
-
 			break;
 			
-			case Test:
+			case Forward:
+			default:				
 				if(flag == 0) {
 					AutoLine();
 				}else {
-					if(Total < 4 && Top < 4.5) {
-						Lift.set(1);
-					}else {
-						Lift.set(0.0);
-					}
+					mech.driveCartesian(0.0, 0.0, 0.0);
 				}
-//				if(time.get() < 3) {  	
-//				mech.driveCartesian(0.0, 0.3, 0.0, 0.0);
-//				}else {
-//					if(Total < 10) {// Move Lift Up 10 revolutions
-//						Lift.set(0.4);
+			break;
+			
+			case Test:				
+				switch (flag){
+				case 0:
+					if(time.get() > 5) {
+						time.reset();
+						flag = 1;
+					}
+					break;
+				case 1:
+					Straff();
+					break;
+				case 8:
+					mech.driveCartesian(0.0, 0.0, 0.0);
+					break;
+				}
+				//Second part of the Switch to Scale Auton				
+//				if(flag == 0) {
+//					rearLeft.set(ControlMode.MotionMagic, -5000);
+//					rearRight.set(ControlMode.MotionMagic, 5000);
+//					frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
+//					frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
+//					if(LimitB.getAverageVoltage() < 4.5) {	
+//						Lift.set(-1);
 //					}else {
-//						Lift.set(0.0);	
+//						Lift.set(0.0);
 //					}
-//					if(FMS.charAt(0)=='R') {
-//						if(time.get() < 4.5 && time.get() > 3 ) {
-//						}else if(time.get() < 5.5 && time.get() > 4.5) {
-//							mech.driveCartesian(0, 0, -0.4);
-//						}else if(time.get() > 5.5 && time.get() < 6.5) { 
-//							mech.driveCartesian(0.0, 0.3, 0.0); 
-//						}else if(time.get() > 6.5) {
-//							mech.driveCartesian(0.0, 0.0, 0.0);
-//							Grab1.set(0.4);
-//							Grab2.set(0.4);
+//					Grab1.set(0.0);
+//					Grab2.set(0.0);
+//					if((rearLeft.getSelectedSensorVelocity(0) == 0)&& (time.get() > 1) && (LimitB.getAverageVoltage() > 4.5)) {
+//						flag = 1;
+//						rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+//						rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+//						time.reset();
 //
-//						}
-//					}else {
-//						rearLeft.set(ControlMode.PercentOutput, 0.0);
-//						rearRight.set(ControlMode.PercentOutput, 0.0);
-//						frontLeft.set(ControlMode.PercentOutput, 0.0);
-//						frontRight.set(ControlMode.PercentOutput, 0.0);
 //					}
-//			}
-				
+//				}else if(flag == 1) {
+//					Turn();
+//				}else if(flag == 5) {
+//					SecondCube();
+//				}else if(flag == 6) {
+//					backup();
+//				}else {
+//					
+//					mech.driveCartesian(0.0, 0.0, 0.0, 0.0);
+//				}
+//								
 			break;
 			
 			case Switch:
 				Claw.set(false);
-
 				System.out.println("Switch: flag:"+flag+" Revolutions : "+Total);
 				if(flag == 0) {
 					FirstMovement();
@@ -501,81 +559,93 @@ public class Robot extends IterativeRobot {
 				}else if(flag == 2) {
 					ThirdMovement();
 				}else if((flag == 3) && (Total >= 5)) {
-					mech.driveCartesian(0.0, 0.0, 0.0, 0.0);
-					Grab1.set(-0.7);
-					Grab2.set(0.7);
+					Switch();
 				}
 				if(flag < 3) {
 					Grab1.set(0.1);
 					Grab2.set(-0.1);
 				}
-					if(Total < 7) {// Move Lift Up 4 revolutions
+					if(Total < 5) {// Move Lift Up 5 revolutions
 						Lift.set(1);
 					}else {
 						Lift.set(0.0);	
 					}
-				
-				
 			break;
+			
+			case SwtchScle:				
+				Claw.set(false);
+				System.out.println("Switch: flag:"+flag+" Revolutions : "+Total);
+				if(flag == 0) {
+					FirstMovement();
+				}else if(flag == 1) {
+					SecondMovement();
+				}else if(flag == 2) {
+					ThirdMovement();
+				}else if(flag == 3) {
+					Switch();
+				}else if(flag == 4) {
+					rearLeft.set(ControlMode.MotionMagic, -5000);
+					rearRight.set(ControlMode.MotionMagic, 5000);
+					frontLeft.set(ControlMode.PercentOutput, rearLeft.getMotorOutputPercent());
+					frontRight.set(ControlMode.PercentOutput, rearRight.getMotorOutputPercent());
+					if(LimitB.getAverageVoltage() < 4.5) {
+						Lift.set(-0.5);
+					}
+					Grab1.set(0.0);
+					Grab2.set(0.0);
+					if((rearLeft.getSelectedSensorVelocity(0) == 0)&& (time.get() > 1) && (LimitB.getAverageVoltage() > 4.5)) {
+					flag = 5;
+					rearLeft.setSelectedSensorPosition(0, 0, TimeOut);
+					rearRight.setSelectedSensorPosition(0, 0, TimeOut);
+					time.reset();
+				}
+				}else if(flag == 5) {
+					Turn();
+				}else if(flag == 6) {
+					flag = 7;
+				}else if(flag == 7 && q) {
+					backup();
+				}else if(flag == 8 && q) {
+					Straff();
+				}else if(flag == 9 && q) {
+					Scale();
+				}
+				if(flag < 4) {
+					Claw.set(false);
+					Grab1.set(0.2);
+					Grab2.set(-0.2);
+				}				
+				if(Total < 5 &&( flag == 2 || flag == 3)) {
+					Lift.set(1.0);
+				}else if(Total >= 5 && (flag == 2 || flag == 3)) {
+					Lift.set(0.0);
+				}
+				System.out.println("Flag Variable: " + flag);	
+			break;	
+			
 		}
 		Timer.delay(0.01);
 	}
+	
 	@Override
 	public void teleopInit() {
 		time.reset();
 		Gyro.reset();
-		Gyro.calibrate();
 	}
 	/**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
 	public void teleopPeriodic() {
-		boolean Safety =		mech.isSafetyEnabled();
 		Top = LimitT.getVoltage();
 		Bottom = LimitB.getAverageVoltage();
-
+		debug(); 
 		
-		// Use the joystick X axis for lateral movement, Y axis for forward
-		// movement, and Z axis for rotation.
-
-//		debug();
-		SmartDashboard.putBoolean("Robot Safety			:", Safety);
-		SmartDashboard.putNumber("Left Error			:", rearLeft.getClosedLoopError(0));
-		SmartDashboard.putNumber("Right Error			:", rearRight.getClosedLoopError(0));
-  
-		SmartDashboard.putNumber("TIME					:", time.get());
-		SmartDashboard.putNumber("flag				 	:", flag);
-		SmartDashboard.putNumber("HallEffect		 	:", Total);
-		
-	    SmartDashboard.putNumber("Left Mag Position	 	:", rearLeft.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Right Mag Position 	:", rearRight.getSelectedSensorPosition(0));
-	    SmartDashboard.putNumber("Left Front Percent 	:", frontLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Left Rear Percent	 	:", rearLeft.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Front Percent	:", frontRight.getMotorOutputPercent());
-	    SmartDashboard.putNumber("Right Rear Percent 	:", rearRight.getMotorOutputPercent());
-	    
-		SmartDashboard.putNumber("flag				 	:", flag);
-		SmartDashboard.putNumber("Revolutions for Lift	:", Total);
-		SmartDashboard.putNumber("LIFT					:", lift);
-		SmartDashboard.putNumber("Hall Effect Sensor	:", Hall.getAverageVoltage());
-		SmartDashboard.putNumber("Bottom Limit Switch", LimitB.getAverageVoltage());
-		SmartDashboard.putNumber("X-Angle			 ", Gyro.getAngleX());
-	    SmartDashboard.putNumber("Y-Angle			 ", Gyro.getAngleY());
-	    SmartDashboard.putNumber("Z-Angle			 ", Gyro.getAngleZ());
-	    SmartDashboard.putNumber("X-Acceleration	 ", Gyro.getAccelX());
-	    SmartDashboard.putNumber("Y-Acceleration	 ", Gyro.getAccelY());
-	    SmartDashboard.putNumber("Z-Acceleration	 ", Gyro.getAccelZ());
-	    
-	    double Cal = -0.58/2 *Math.pow(time.get(), 2);
-	    
-	    SmartDashboard.putNumber("New Gyro Angle", Cal);
-
 		if(Hall.getAverageVoltage() < 0.1) {
 			if(Lift.getSpeed() > 0 && h == 0) {
 				Total = Total + 1;
 				h = 1;
-			}else if(Lift.getSpeed() < 0 && h == 0) {
+			}else if(Lift.getSpeed() <= 0 && h == 0) {
 				Total = Total - 1;
 				h = 1;
 			}else {
@@ -584,7 +654,6 @@ public class Robot extends IterativeRobot {
 		}else {
 			h = 0;
 		}
-
 		
 		double Y;
 		double X;
@@ -607,11 +676,11 @@ public class Robot extends IterativeRobot {
 			rZ = 0;
 		}
 
-		mech.driveCartesian(X, Y, rZ, 0.0); 
-		
-		
+		mech.driveCartesian(X, -1*Y, rZ, Gyro.getAngleZ()); 
+
 		double Speed = (X52.getRawAxis(6)+1)/2;
 		
+		//Saitek X52 Joystick Controls:
 		if(X52.getRawButton(E) && Top < 4.5) {
 			Lift.set(Speed);
 			lift = 1;
@@ -621,17 +690,14 @@ public class Robot extends IterativeRobot {
 		}else { 
 			Lift.set(0);
 			lift = 0;
-		}
-		
-		
-		
+		}				
 		if(X52.getRawButton(C)) {
 			Grab1.set(-0.45);
 			Grab2.set(0.45);
 			grab = 1;
 		}else if(X52.getRawButton(Trigger)) {
-			Grab1.set(1);  //Values need to be reversed for Comp. Robot
-			Grab2.set(-1);
+			Grab1.set(0.8);  //Values need to be reversed for Comp. Robot
+			Grab2.set(-0.8);
 			grab = 1;
 		}else if(X52.getRawButton(Fire)) {
 			Grab1.set(-1);  //Values need to be reversed for Comp. Robot
@@ -640,40 +706,21 @@ public class Robot extends IterativeRobot {
 		}else if(rZ > 0.3 || rZ < -0.3 || X52.getRawButton(D)) {
 			Grab1.set(0.45);
 			Grab2.set(-0.45);
+		}else if(Y < -0.1) {
+			Grab1.set(0.2);
+			Grab2.set(-0.2);
 		}else {
 			Grab1.set(0);
 			Grab2.set(0);
 			grab = 0;
 		}
 		
-		if((X52.getRawButton(B) || Log.getRawButton(X2))&& g == 0) {
-			g = 1;
-		}else if(!(X52.getRawButton(B) || Log.getRawButton(X2))&& g == 1) {
-			g = 2;
-		}else if ((X52.getRawButton(B) || Log.getRawButton(X2)) && g == 2) {
-			g = 3;
-		}else if(!(X52.getRawButton(B) || Log.getRawButton(X2)) && g == 3) {
-			g = 0;
-		}
-		
-		if(g == 1 || g == 2) {
-			Claw.set(true);
-			claw = 1;
-		}else { 
-			Claw.set(false);
-			claw = 0;
-		}
-		
-
-		
-		//For Logictech Controller
-		
+		//For Logictech Controller		
 		if(Log.getRawButton(B2) && lift == 0 && Top < 4.5) {
 			Lift.set(Speed);
 		}else if(Log.getRawButton(A2) && lift == 0 && Bottom < 4.5) {
 			Lift.set(-1*Speed);
 		}
-		
 		if(Log.getRawButton(RB) && grab == 0) {
 			Grab1.set(-0.45);//Values need to be reversed for Comp. Robot
 			Grab2.set(0.45);
@@ -682,14 +729,8 @@ public class Robot extends IterativeRobot {
 			Grab2.set(-1);
 		}else if(Log.getRawButton(Y2) && grab == 0) {
 			Grab1.set(-1);  //Values need to be reversed for Comp. Robot
-			Grab2.set(1);
-			
-		}
-		
-//		if(Log.getRawButton(X2) && claw == 0) {
-//			Claw.set(true);
-//		}
-		
+			Grab2.set(1);	
+		}	
 		if(Log.getRawButton(Back) && c == 0) {
 			c = 1;
 		}else if(!Log.getRawButton(Back) && c == 1) {
@@ -698,14 +739,28 @@ public class Robot extends IterativeRobot {
 			c = 3;
 		}else if(!Log.getRawButton(Back) && c == 3) {
 			c = 0;
-		}
-		
+		}		
 		if(c == 1 || c == 2) {
 			Comp.stop();
 		}else { 
 			Comp.start();
 		}
 		
+		// Claw is used by both Controllers:
+		if((X52.getRawButton(B) || Log.getRawButton(X2))&& g == 0) {
+			g = 1;
+		}else if(!(X52.getRawButton(B) || Log.getRawButton(X2))&& g == 1) {
+			g = 2;
+		}else if ((X52.getRawButton(B) || Log.getRawButton(X2)) && g == 2) {
+			g = 3;
+		}else if(!(X52.getRawButton(B) || Log.getRawButton(X2)) && g == 3) {
+			g = 0;
+		}	
+		if(g == 1 || g == 2) {
+			Claw.set(true);
+		}else { 
+			Claw.set(false);
+		}	
 	    Timer.delay(0.001);
 	}
 
